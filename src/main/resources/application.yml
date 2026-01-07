@@ -81,7 +81,7 @@ spring:
       on-profile: prod
   
   datasource:
-    url: jdbc:postgresql://localhost:5432/rccmsdb
+    url: jdbc:postgresql://localhost:5432/rccms_manipur
     driver-class-name: org.postgresql.Driver
     username: ${DB_USERNAME:postgres}
     password: ${DB_PASSWORD:postgres}

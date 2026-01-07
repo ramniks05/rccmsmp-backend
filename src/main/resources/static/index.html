@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>nRCCMS MANIPUR</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle at top left, #2f80ed 0, #0b1630 45%, #020611 100%);
+            color: #f9fafb;
+        }
+
+        .card {
+            position: relative;
+            padding: 3rem 3.5rem;
+            border-radius: 1.5rem;
+            background: rgba(15, 23, 42, 0.9);
+            box-shadow:
+                    0 24px 60px rgba(15, 23, 42, 0.8),
+                    0 0 0 1px rgba(148, 163, 184, 0.15);
+            max-width: 720px;
+            width: 95%;
+            text-align: center;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: "";
+            position: absolute;
+            inset: -1px;
+            border-radius: inherit;
+            padding: 1px;
+            background: linear-gradient(135deg, #4f46e5, #06b6d4, #22c55e);
+            -webkit-mask:
+                    linear-gradient(#000 0 0) content-box,
+                    linear-gradient(#000 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            opacity: 0.7;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.25rem 0.85rem;
+            border-radius: 999px;
+            background: rgba(15, 118, 110, 0.18);
+            color: #a5f3fc;
+            font-size: 0.78rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-bottom: 1.5rem;
+        }
+
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 999px;
+            background: #22c55e;
+            box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.3);
+            animation: pulse 1.8s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            70% { transform: scale(1.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 0; }
+        }
+
+        h1 {
+            font-size: clamp(2.4rem, 4vw, 3rem);
+            margin-bottom: 0.75rem;
+            letter-spacing: 0.03em;
+        }
+
+        h1 span.highlight {
+            background: linear-gradient(120deg, #e5e7eb, #38bdf8, #a5f3fc);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .subtitle {
+            font-size: 0.98rem;
+            color: #cbd5f5;
+            max-width: 520px;
+            margin: 0 auto 2rem;
+            line-height: 1.6;
+        }
+
+        .meta {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1rem;
+            font-size: 0.8rem;
+            color: #9ca3af;
+        }
+
+        .chip {
+            padding: 0.3rem 0.75rem;
+            border-radius: 999px;
+            border: 1px solid rgba(148, 163, 184, 0.45);
+            background: rgba(15, 23, 42, 0.8);
+        }
+
+        @media (max-width: 640px) {
+            .card {
+                padding: 2.25rem 1.75rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<main class="card" aria-label="Welcome to RCCMS Manipur">
+    <div class="badge">
+        <span class="pulse-dot" aria-hidden="true"></span>
+        <span>RCCMS · Government of Manipur</span>
+    </div>
+
+    <h1>
+        Welcome to
+        <span class="highlight">RCCMS MANIPUR</span>
+    </h1>
+
+    <p class="subtitle">
+        Centralized and secure backend for the
+        <strong>Revenue Court Management System (RCCMS)</strong> in Manipur.
+    </p>
+
+    <section class="meta">
+        <span class="chip">Spring Boot 3 · Java 17</span>
+        <span class="chip">PostgreSQL · H2 (dev)</span>
+        <span class="chip">REST API · Secure · Scalable</span>
+    </section>
+</main>
+</body>
+</html>
+
+
