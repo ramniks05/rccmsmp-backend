@@ -5,19 +5,19 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfigurationSource;
 
 /**
  * Spring Security Configuration
  * 
- * Current configuration:
- * - Permits all requests (no authentication required)
- * - Disables CSRF protection
- * - Enables CORS
- * - Stateless session management
- * 
- * This is a basic setup ready for JWT implementation in the future
+ * Configuration:
+ * - Permits all requests (public endpoints)
+ * - Disables CSRF (stateless JWT authentication)
+ * - Enables CORS for Angular frontend
+ * - Stateless session management for JWT
  */
 @Configuration
 @EnableWebSecurity
@@ -32,20 +32,15 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // Disable CSRF for now (will be enabled with JWT)
                 .csrf(csrf -> csrf.disable())
-                
-                // Enable CORS
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
-                
-                // Permit all requests (no authentication)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/**").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
+                        .requestMatchers("/swagger-ui/**", "/swagger-ui.html").permitAll()
+                        .requestMatchers("/v3/api-docs/**", "/swagger-resources/**").permitAll()
                         .anyRequest().permitAll()
                 )
-                
-                // Stateless session management (for JWT in future)
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
@@ -56,6 +51,15 @@ public class SecurityConfig {
                 );
 
         return http.build();
+    }
+
+    /**
+     * Password Encoder Bean
+     * Uses BCrypt for password hashing
+     */
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 }
 
