@@ -54,6 +54,7 @@ springdoc:
     operations-sorter: method
     tags-sorter: alpha
     try-it-out-enabled: true
+    use-root-path: true
 
 # Logging Configuration
 logging:

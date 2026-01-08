@@ -14,7 +14,10 @@ import java.util.List;
  * OpenAPI (Swagger) Configuration
  * Configures API documentation for the RCCMS Manipur Backend
  * 
- * Access Swagger UI at: http://localhost:8080/swagger-ui.html
+ * Access Swagger UI at:
+ * - http://localhost:8080/swagger-ui.html
+ * - http://localhost:8080/swagger-ui/index.html
+ * 
  * Access API Docs JSON at: http://localhost:8080/v3/api-docs
  */
 @Configuration
