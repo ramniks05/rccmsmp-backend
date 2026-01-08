@@ -34,6 +34,7 @@ src/main/java/in/gov/manipur/rccms/
 - ✅ Spring Security (basic setup, ready for JWT)
 - ✅ Health check endpoint
 - ✅ Profile-based configuration (dev/prod)
+- ✅ Swagger/OpenAPI documentation
 
 ## Getting Started
 
@@ -64,14 +65,20 @@ src/main/java/in/gov/manipur/rccms/
 
 - **Health Check**: `GET http://localhost:8080/api/health`
 - **H2 Console** (dev only): `http://localhost:8080/h2-console`
+- **Swagger UI**: `http://localhost:8080/swagger-ui.html`
+- **API Docs (JSON)**: `http://localhost:8080/v3/api-docs`
 
-### Sample Entity Endpoints
+#### Citizen Registration APIs
 
-- `GET /api/samples` - Get all samples
-- `GET /api/samples/{id}` - Get sample by ID
-- `POST /api/samples` - Create sample
-- `PUT /api/samples/{id}` - Update sample
-- `DELETE /api/samples/{id}` - Delete sample
+- `POST /api/citizens/register` - Register a new citizen (requires password)
+- `GET /api/citizens/{id}` - Get citizen by ID
+- `GET /api/citizens/mobile/{mobileNumber}` - Get citizen by mobile number
+
+#### Authentication APIs
+
+- `POST /api/auth/login` - Login with mobile number or email and password
+  - Returns JWT token for authenticated requests
+  - Username can be mobile number (10 digits) or email ID
 
 ## Configuration
 

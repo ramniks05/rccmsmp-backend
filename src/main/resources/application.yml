@@ -36,6 +36,25 @@ server:
   servlet:
     context-path: /
 
+# Application Configuration
+app:
+  encryption:
+    key: ${ENCRYPTION_KEY:MySecretKey12345} # In production, use environment variable
+  jwt:
+    secret: ${JWT_SECRET:MySecretKeyForJWTTokenGeneration12345678901234567890} # In production, use environment variable (min 32 chars)
+    expiration: ${JWT_EXPIRATION:86400000} # 24 hours in milliseconds
+
+# Swagger/OpenAPI Configuration
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    operations-sorter: method
+    tags-sorter: alpha
+    try-it-out-enabled: true
+
 # Logging Configuration
 logging:
   level:
