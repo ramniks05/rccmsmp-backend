@@ -2,33 +2,26 @@ spring:
   application:
     name: rccmsmp-backend
   
-  # Profile-specific configurations
-  profiles:
-    active: dev
+  # Database Configuration
+  datasource:
+    url: jdbc:postgresql://localhost:5432/rccms_manipur
+    driver-class-name: org.postgresql.Driver
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 30000
   
   # JPA Configuration
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: update  # Creates/updates tables automatically
     show-sql: true
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
-        use_sql_comments: true
-  
-  # Database Configuration (default - will be overridden by profile)
-  datasource:
-    url: jdbc:h2:mem:rccmsdb
-    driver-class-name: org.h2.Driver
-    username: sa
-    password: 
-  
-  # H2 Console (for local development)
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
 
 # Server Configuration
 server:
@@ -42,7 +35,8 @@ app:
     key: ${ENCRYPTION_KEY:MySecretKey12345} # In production, use environment variable
   jwt:
     secret: ${JWT_SECRET:MySecretKeyForJWTTokenGeneration12345678901234567890} # In production, use environment variable (min 32 chars)
-    expiration: ${JWT_EXPIRATION:86400000} # 24 hours in milliseconds
+    expiration: ${JWT_EXPIRATION:3600000} # 1 hour in milliseconds
+    refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000} # 7 days in milliseconds
 
 # Swagger/OpenAPI Configuration
 springdoc:
@@ -64,63 +58,3 @@ logging:
     org.springframework.security: DEBUG
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
-
----
-# Development Profile
-spring:
-  config:
-    activate:
-      on-profile: dev
-  
-  datasource:
-    url: jdbc:h2:mem:rccmsdb
-    driver-class-name: org.h2.Driver
-    username: sa
-    password: 
-  
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
-  
-  jpa:
-    hibernate:
-      ddl-auto: create-drop
-    show-sql: true
-
-logging:
-  level:
-    root: INFO
-    in.gov.manipur.rccms: DEBUG
-
----
-# Production Profile
-spring:
-  config:
-    activate:
-      on-profile: prod
-  
-  datasource:
-    url: jdbc:postgresql://localhost:5432/rccms_manipur
-    driver-class-name: org.postgresql.Driver
-    username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD:postgres}
-    hikari:
-      maximum-pool-size: 10
-      minimum-idle: 5
-      connection-timeout: 30000
-  
-  jpa:
-    hibernate:
-      ddl-auto: validate
-    show-sql: false
-  
-  h2:
-    console:
-      enabled: false
-
-logging:
-  level:
-    root: WARN
-    in.gov.manipur.rccms: INFO
-

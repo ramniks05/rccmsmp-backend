@@ -23,28 +23,46 @@ public class JwtService {
     @Value("${app.jwt.secret:MySecretKeyForJWTTokenGeneration12345678901234567890}")
     private String jwtSecret;
 
-    @Value("${app.jwt.expiration:86400000}") // 24 hours in milliseconds
+    @Value("${app.jwt.expiration:3600000}") // 1 hour in milliseconds
     private Long jwtExpiration;
 
+    @Value("${app.jwt.refresh-expiration:604800000}") // 7 days in milliseconds
+    private Long refreshTokenExpiration;
+
     /**
-     * Generate JWT token for a citizen
-     * @param citizenId the citizen ID
-     * @param mobileNumber the mobile number
+     * Generate JWT access token for a user
+     * @param userId the user ID
+     * @param username the username (mobile/email)
+     * @param userType the user type
      * @return JWT token string
      */
-    public String generateToken(Long citizenId, String mobileNumber) {
+    public String generateToken(Long userId, String username, String userType) {
         Map<String, Object> claims = new HashMap<>();
-        claims.put("citizenId", citizenId);
-        claims.put("mobileNumber", mobileNumber);
-        return createToken(claims, mobileNumber);
+        claims.put("userId", userId);
+        claims.put("userType", userType);
+        claims.put("type", "access");
+        return createToken(claims, username, jwtExpiration);
+    }
+
+    /**
+     * Generate refresh token
+     * @param userId the user ID
+     * @param username the username
+     * @return Refresh token string
+     */
+    public String generateRefreshToken(Long userId, String username) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("userId", userId);
+        claims.put("type", "refresh");
+        return createToken(claims, username, refreshTokenExpiration);
     }
 
     /**
      * Create JWT token with claims
      */
-    private String createToken(Map<String, Object> claims, String subject) {
+    private String createToken(Map<String, Object> claims, String subject, Long expiration) {
         Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + jwtExpiration);
+        Date expiryDate = new Date(now.getTime() + expiration);
 
         return Jwts.builder()
                 .claims(claims)
@@ -63,11 +81,40 @@ public class JwtService {
     }
 
     /**
-     * Extract citizen ID from token
+     * Extract user ID from token
      */
-    public Long extractCitizenId(String token) {
+    public Long extractUserId(String token) {
         Claims claims = extractAllClaims(token);
-        return claims.get("citizenId", Long.class);
+        return claims.get("userId", Long.class);
+    }
+
+    /**
+     * Extract user type from token
+     */
+    public String extractUserType(String token) {
+        Claims claims = extractAllClaims(token);
+        return claims.get("userType", String.class);
+    }
+
+    /**
+     * Extract token type (access or refresh)
+     */
+    public String extractTokenType(String token) {
+        Claims claims = extractAllClaims(token);
+        return claims.get("type", String.class);
+    }
+
+    /**
+     * Validate refresh token
+     */
+    public Boolean validateRefreshToken(String token) {
+        try {
+            Claims claims = extractAllClaims(token);
+            String type = claims.get("type", String.class);
+            return "refresh".equals(type) && !isTokenExpired(token);
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     /**

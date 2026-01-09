@@ -59,3 +59,9 @@ application-local.properties
 logs/
 *.log
 
+# Database files
+data/
+*.mv.db
+*.db
+*.trace.db
+
