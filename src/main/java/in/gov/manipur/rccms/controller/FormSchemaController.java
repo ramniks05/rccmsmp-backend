@@ -169,5 +169,21 @@ public class FormSchemaController {
                     .body(ApiResponse.error("Validation failed"));
         }
     }
+
+    /*fetch categories and fields by CaseId*/
+
+    @GetMapping("/fields/by-case-type/{caseTypeId}")
+    public ResponseEntity<ApiResponse<CategoryFieldResponseDTO>> getFieldsByCaseType(
+            @PathVariable Long caseTypeId
+    ) {
+        CategoryFieldResponseDTO response =
+                formSchemaService.getCategoriesWithFields(caseTypeId);
+
+        return ResponseEntity.ok(
+                ApiResponse.success("Categories and fields fetched successfully", response)
+        );
+    }
+
+
 }
 

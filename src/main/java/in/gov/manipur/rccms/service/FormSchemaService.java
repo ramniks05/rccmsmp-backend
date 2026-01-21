@@ -132,7 +132,8 @@ public class FormSchemaService {
         field.setPlaceholder(dto.getPlaceholder());
         field.setHelpText(dto.getHelpText());
         field.setFieldGroup(dto.getFieldGroup());
-        field.setConditionalLogic(dto.getConditionalLogic());
+//        field.setCategory(dto.getCateogry());
+//        field.setPriority(dto.getPriority());
 
         FormFieldDefinition saved = fieldRepository.save(field);
         log.info("Form field created successfully: fieldId={}", saved.getId());
@@ -234,7 +235,7 @@ public class FormSchemaService {
         }
 
         List<FormFieldDefinitionDTO> createdFields = new ArrayList<>();
-        
+
         for (CreateFormFieldDTO dto : fields) {
             // Ensure all fields belong to the same case type
             dto.setCaseTypeId(caseTypeId);
@@ -257,7 +258,7 @@ public class FormSchemaService {
         }
 
         List<FormFieldDefinitionDTO> updatedFields = new ArrayList<>();
-        
+
         for (BulkUpdateFieldItemDTO item : fields) {
             if (item.getFieldId() == null) {
                 throw new IllegalArgumentException("Field ID cannot be null");
@@ -265,7 +266,7 @@ public class FormSchemaService {
             if (item.getUpdateData() == null) {
                 throw new IllegalArgumentException("Update data cannot be null for field ID: " + item.getFieldId());
             }
-            
+
             FormFieldDefinitionDTO updated = updateField(item.getFieldId(), item.getUpdateData());
             updatedFields.add(updated);
         }
@@ -286,7 +287,7 @@ public class FormSchemaService {
 
         int deletedCount = 0;
         List<String> errors = new ArrayList<>();
-        
+
         for (Long fieldId : fieldIds) {
             try {
                 if (fieldId != null) {
@@ -300,7 +301,7 @@ public class FormSchemaService {
         }
 
         log.info("Bulk deleted {}/{} fields successfully", deletedCount, fieldIds.size());
-        
+
         if (!errors.isEmpty() && deletedCount == 0) {
             // If all deletions failed, throw exception
             throw new RuntimeException("All fields could not be deleted: " + String.join(", ", errors));
@@ -530,12 +531,13 @@ public class FormSchemaService {
         }
 
         try {
-            List<Map<String, String>> options = objectMapper.readValue(fieldOptions, 
-                    new TypeReference<List<Map<String, String>>>() {});
-            
+            List<Map<String, String>> options = objectMapper.readValue(fieldOptions,
+                    new TypeReference<List<Map<String, String>>>() {
+                    });
+
             boolean isValid = options.stream()
                     .anyMatch(opt -> value.equals(opt.get("value")));
-            
+
             if (!isValid) {
                 return "Invalid option selected";
             }
@@ -556,7 +558,8 @@ public class FormSchemaService {
         }
 
         try {
-            return objectMapper.readValue(rulesJson, new TypeReference<Map<String, Object>>() {});
+            return objectMapper.readValue(rulesJson, new TypeReference<Map<String, Object>>() {
+            });
         } catch (Exception e) {
             log.error("Error parsing validation rules: {}", e.getMessage());
             return new HashMap<>();
@@ -638,5 +641,64 @@ public class FormSchemaService {
 
         return dto;
     }
+
+    //fetch categories and fields by caseId
+
+    public CategoryFieldResponseDTO getCategoriesWithFields(Long caseTypeId) {
+
+        List<FormFieldDefinition> fields =
+                fieldRepository
+                        .findByCaseTypeIdAndIsActiveTrueOrderByDisplayOrderAsc(caseTypeId);
+
+        if (fields.isEmpty()) {
+            throw new RuntimeException("No fields found for caseTypeId " + caseTypeId);
+        }
+
+        Map<Long, List<FormFieldDefinition>> groupedByCategory =
+                fields.stream()
+                        .collect(Collectors.groupingBy(FormFieldDefinition::getCategoryId));
+
+        List<CategoryDTO> categories =
+                groupedByCategory.values().stream()
+                        .map(categoryFields -> {
+
+                            FormFieldDefinition first = categoryFields.get(0);
+
+                            CategoryDTO category = new CategoryDTO();
+                            category.setCategoryId(first.getCategoryId());
+                            category.setCategoryName(
+                                    first.getCategoryType().getCategoryName()
+                            );
+                            category.setDisplayOrder(
+                                    first.getCategoryType().getDisplayOrder()
+                            );
+
+                            List<FormFieldDefinitionDTO> fieldDTOs =
+                                    categoryFields.stream()
+                                            .sorted(Comparator.comparing(FormFieldDefinition::getDisplayOrder))
+                                            .map(field -> FormFieldDefinitionDTO.builder()
+                                                    .id(field.getId())
+                                                    .fieldName(field.getFieldName())
+                                                    .fieldLabel(field.getFieldLabel())
+                                                    .fieldType(field.getFieldType())
+                                                    .isRequired(field.getIsRequired())
+                                                    .displayOrder(field.getDisplayOrder())
+                                                    .placeholder(field.getPlaceholder())
+                                                    .helpText(field.getHelpText())
+                                                    .build()
+                                            )
+                                            .toList();
+
+                            category.setFields(fieldDTOs);
+                            return category;
+                        })
+                        .sorted(Comparator.comparing(CategoryDTO::getDisplayOrder))
+                        .toList();
+
+        CategoryFieldResponseDTO response = new CategoryFieldResponseDTO();
+        response.setCategories(categories);
+        return response;
+    }
+
 }
 

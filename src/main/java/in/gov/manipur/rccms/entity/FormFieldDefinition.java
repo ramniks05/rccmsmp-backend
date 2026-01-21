@@ -34,6 +34,13 @@ public class FormFieldDefinition {
     @Column(name = "case_type_id", insertable = false, updatable = false)
     private Long caseTypeId;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id", nullable = false, foreignKey = @ForeignKey(name = "fk_form_field_category_type"))
+    private CaseCategory categoryType;
+
+    @Column(name = "category_id", insertable = false, updatable = false)
+    private Long categoryId;
+
     @Column(name = "field_name", nullable = false, length = 100)
     private String fieldName; // e.g., "registeredDeedNumber"
 

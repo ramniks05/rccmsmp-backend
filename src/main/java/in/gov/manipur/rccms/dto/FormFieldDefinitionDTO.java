@@ -19,6 +19,8 @@ public class FormFieldDefinitionDTO {
     private Long caseTypeId;
     private String caseTypeName;
     private String caseTypeCode;
+    private Long categoryId;
+    private String categoryName;
     private String fieldName;
     private String fieldLabel;
     private String fieldType;

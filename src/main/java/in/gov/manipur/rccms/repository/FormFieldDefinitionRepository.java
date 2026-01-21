@@ -41,5 +41,9 @@ public interface FormFieldDefinitionRepository extends JpaRepository<FormFieldDe
      * Count active fields for a case type
      */
     long countByCaseTypeIdAndIsActiveTrue(Long caseTypeId);
+
+    List<FormFieldDefinition> findByCaseTypeIdAndIsActiveTrueOrderByDisplayOrderAsc(Long caseTypeId);
+
+//    List<FormFieldDefinition> findByCategoryIdAndIsActiveTrueOrderByDisplayOrderAsc(Long categoryId);
 }
 
