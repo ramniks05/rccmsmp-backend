@@ -207,7 +207,7 @@ public class FormSchemaController {
     }
 
     @DeleteMapping("/delete/form-section-schema/{formSectionSchemaId}")
-//    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<ApiResponse<Map<String, Object>>> deleteFormSectionSchemaData(@PathVariable Long formSectionSchemaId) {
         log.info("Deleting form section Schema: {}", formSectionSchemaId);
 
