@@ -44,6 +44,8 @@ public interface FormFieldDefinitionRepository extends JpaRepository<FormFieldDe
 
     List<FormFieldDefinition> findByCaseTypeIdAndIsActiveTrueOrderByDisplayOrderAsc(Long caseTypeId);
 
+    void deleteByFormSectionSchemaId(Long formSectionSchemaId);
+
 //    List<FormFieldDefinition> findByCategoryIdAndIsActiveTrueOrderByDisplayOrderAsc(Long categoryId);
 }
 

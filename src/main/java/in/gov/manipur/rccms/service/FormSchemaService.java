@@ -5,10 +5,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import in.gov.manipur.rccms.dto.*;
 import in.gov.manipur.rccms.entity.CaseType;
 import in.gov.manipur.rccms.entity.FormFieldDefinition;
+import in.gov.manipur.rccms.entity.FormSectionSchema;
+import in.gov.manipur.rccms.exception.DuplicateUserException;
 import in.gov.manipur.rccms.repository.CaseTypeRepository;
 import in.gov.manipur.rccms.repository.FormFieldDefinitionRepository;
+import in.gov.manipur.rccms.repository.FormSectionSchemaRepository;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,6 +38,8 @@ public class FormSchemaService {
     private final FormFieldDefinitionRepository fieldRepository;
     private final CaseTypeRepository caseTypeRepository;
     private final ObjectMapper objectMapper;
+    @Autowired
+    private FormSectionSchemaRepository formSectionSchemaRepository;
 
     /**
      * Get form schema for a case type (only active fields)
@@ -644,7 +652,7 @@ public class FormSchemaService {
 
     //fetch categories and fields by caseId
 
-    public CategoryFieldResponseDTO getCategoriesWithFields(Long caseTypeId) {
+    public FormSectionSchemaFieldResponseDTO getFormSectionSchemaWithFields(Long caseTypeId) {
 
         List<FormFieldDefinition> fields =
                 fieldRepository
@@ -656,21 +664,21 @@ public class FormSchemaService {
 
         Map<Long, List<FormFieldDefinition>> groupedByCategory =
                 fields.stream()
-                        .collect(Collectors.groupingBy(FormFieldDefinition::getCategoryId));
+                        .collect(Collectors.groupingBy(FormFieldDefinition::getFormSectionSchemaId));
 
-        List<CategoryDTO> categories =
+        List<FormSectionSchemaDTO> categories =
                 groupedByCategory.values().stream()
                         .map(categoryFields -> {
 
                             FormFieldDefinition first = categoryFields.get(0);
 
-                            CategoryDTO category = new CategoryDTO();
-                            category.setCategoryId(first.getCategoryId());
-                            category.setCategoryName(
-                                    first.getCategoryType().getCategoryName()
+                            FormSectionSchemaDTO category = new FormSectionSchemaDTO();
+                            category.setFormSectionSchemaId(first.getFormSectionSchemaId());
+                            category.setFormSectionSchemaName(
+                                    first.getFormSectionSchemaType().getFormSectionSchemaName()
                             );
                             category.setDisplayOrder(
-                                    first.getCategoryType().getDisplayOrder()
+                                    first.getFormSectionSchemaType().getDisplayOrder()
                             );
 
                             List<FormFieldDefinitionDTO> fieldDTOs =
@@ -692,12 +700,99 @@ public class FormSchemaService {
                             category.setFields(fieldDTOs);
                             return category;
                         })
-                        .sorted(Comparator.comparing(CategoryDTO::getDisplayOrder))
+                        .sorted(Comparator.comparing(FormSectionSchemaDTO::getDisplayOrder))
                         .toList();
 
-        CategoryFieldResponseDTO response = new CategoryFieldResponseDTO();
-        response.setCategories(categories);
+        FormSectionSchemaFieldResponseDTO response = new FormSectionSchemaFieldResponseDTO();
+        response.setFormSectionSchema(categories);
         return response;
+    }
+
+    public List<FormSectionSchemaDTO> getFormSectionSchemaByCaseTypeId(Long caseTypeId) {
+
+        List<FormSectionSchema> formSectionSchemas = formSectionSchemaRepository.findByCaseTypeId(caseTypeId);
+
+        if (formSectionSchemas.isEmpty()) {
+            throw new RuntimeException("No form section schema found for the caseTypeId:" + caseTypeId);
+        } else {
+            return formSectionSchemas.stream().map(FormSectionSchemaDTO::new).collect(Collectors.toList());
+        }
+    }
+
+    public FormSectionSchemaDTO saveFormSectionData(FormSectionSchemaDTO dto) {
+        if (dto == null) {
+            throw new IllegalArgumentException("Form Section Schema data cannot be null");
+        }
+
+        FormSectionSchema formSectionSchemaEntity = new FormSectionSchema();
+        formSectionSchemaEntity.setFormSectionSchemaName(dto.getFormSectionSchemaName().trim());
+        formSectionSchemaEntity.setSchemaCode(dto.getSchemaCode());
+        formSectionSchemaEntity.setDisplayOrder(dto.getDisplayOrder());
+        formSectionSchemaEntity.setIsActive(dto.getIsActive() != null ? dto.getIsActive() : true);
+        return new FormSectionSchemaDTO(formSectionSchemaEntity);
+    }
+
+    public void deleteFormSectionSchemaData(Long formSectionSchemaId) {
+        log.info("Deleting form section schema data: formSectionSchemaId={}", formSectionSchemaId);
+
+        if (formSectionSchemaId == null) {
+            throw new IllegalArgumentException("Form section schema ID cannot be null");
+        }
+
+        fieldRepository
+                .deleteByFormSectionSchemaId(formSectionSchemaId);
+
+        FormSectionSchema formSectionSchema =
+                formSectionSchemaRepository.findById(formSectionSchemaId)
+                        .orElseThrow(() ->
+                                new RuntimeException("Form section schema not found: " + formSectionSchemaId)
+                        );
+
+        formSectionSchemaRepository.deleteById(formSectionSchemaId);
+        log.info("Form section schema deleted successfully: formSectionSchemaId={}", formSectionSchemaId);
+    }
+
+    public FormSectionSchemaDTO updateFormSectionSchema(Long formSectionSchemaId, FormSectionSchemaDTO dto) {
+        if (formSectionSchemaId == null) {
+            throw new IllegalArgumentException("Form section schema ID cannot be null");
+        }
+        if (dto == null) {
+            throw new IllegalArgumentException("Form section data cannot be null");
+        }
+
+        log.info("Updating form section with ID: {}", formSectionSchemaId);
+
+        FormSectionSchema formSectionSchema = formSectionSchemaRepository.findById(formSectionSchemaId)
+                .orElseThrow(() -> new RuntimeException("Form Section Schema not found with ID: " + formSectionSchemaId));
+
+        // Check if code is being changed and if new code already exists
+        if (!formSectionSchema.getSchemaCode().equalsIgnoreCase(dto.getSchemaCode().trim())) {
+            if (formSectionSchemaRepository.existsBySchemaCode(dto.getSchemaCode().toUpperCase().trim())) {
+                log.warn("Form Section Schema update failed: Code {} already exists", dto.getSchemaCode());
+                throw new DuplicateUserException("Form Section Schema code already exists");
+            }
+            formSectionSchema.setSchemaCode(dto.getSchemaCode().toUpperCase().trim());
+        }
+
+        // Check if name is being changed and if new name already exists
+        if (!formSectionSchema.getFormSectionSchemaName().equals(dto.getFormSectionSchemaName().trim())) {
+            if (formSectionSchemaRepository.existsByFormSectionSchemaName(dto.getFormSectionSchemaName().trim())) {
+                log.warn("Form Section Schema update failed: Name {} already exists", dto.getFormSectionSchemaName());
+                throw new DuplicateUserException("Form Section Schema name already exists");
+            }
+            formSectionSchema.setFormSectionSchemaName(dto.getFormSectionSchemaName().trim());
+        }
+
+        // Update other fields
+        formSectionSchema.setDisplayOrder(dto.getDisplayOrder());
+        if (dto.getIsActive() != null) {
+            formSectionSchema.setIsActive(dto.getIsActive());
+        }
+
+        FormSectionSchema updated = formSectionSchemaRepository.save(formSectionSchema);
+        log.info("Form Section Schema  updated successfully with ID: {}", updated.getId());
+
+        return new FormSectionSchemaDTO(updated);
     }
 
 }

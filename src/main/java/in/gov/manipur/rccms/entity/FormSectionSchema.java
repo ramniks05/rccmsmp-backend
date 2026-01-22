@@ -7,8 +7,8 @@ import java.time.LocalDateTime;
 
 @Data
 @Entity
-@Table(name = "case_category")
-public class CaseCategory {
+@Table(name = "form_section_schema")
+public class FormSectionSchema {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,8 +21,8 @@ public class CaseCategory {
     @Column(name = "case_type_id", insertable = false, updatable = false)
     private Long caseTypeId;
 
-    @Column(name = "category_name", nullable = false, length = 100)
-    private String categoryName;
+    @Column(name = "form_section_name", nullable = false, length = 100)
+    private String formSectionSchemaName;
     @Column(name = "priority", nullable = false)
     private Integer displayOrder;
     @Column(name = "is_active", nullable = false)
@@ -33,4 +33,7 @@ public class CaseCategory {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @Column(name = "code", nullable = false, length = 50)
+    private String schemaCode;
 }

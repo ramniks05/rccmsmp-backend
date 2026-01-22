@@ -35,11 +35,11 @@ public class FormFieldDefinition {
     private Long caseTypeId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "category_id", nullable = false, foreignKey = @ForeignKey(name = "fk_form_field_category_type"))
-    private CaseCategory categoryType;
+    @JoinColumn(name = "form_section_schema_id", nullable = false, foreignKey = @ForeignKey(name = "fk_form_field_section_schema_type"))
+    private FormSectionSchema formSectionSchemaType;
 
-    @Column(name = "category_id", insertable = false, updatable = false)
-    private Long categoryId;
+    @Column(name = "form_section_schema_id", insertable = false, updatable = false)
+    private Long formSectionSchemaId;
 
     @Column(name = "field_name", nullable = false, length = 100)
     private String fieldName; // e.g., "registeredDeedNumber"

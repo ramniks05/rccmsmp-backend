@@ -1,7 +1,9 @@
 package in.gov.manipur.rccms.controller;
 
 import in.gov.manipur.rccms.dto.*;
+import in.gov.manipur.rccms.entity.FormSectionSchema;
 import in.gov.manipur.rccms.service.FormSchemaService;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -173,15 +175,60 @@ public class FormSchemaController {
     /*fetch categories and fields by CaseId*/
 
     @GetMapping("/fields/by-case-type/{caseTypeId}")
-    public ResponseEntity<ApiResponse<CategoryFieldResponseDTO>> getFieldsByCaseType(
+    @Operation(summary = "Get Form Section Schema With Fields By Case Type", description = "Retrieve subcases by case type")
+    public ResponseEntity<ApiResponse<FormSectionSchemaFieldResponseDTO>> getFieldsByCaseType(
             @PathVariable Long caseTypeId
     ) {
-        CategoryFieldResponseDTO response =
-                formSchemaService.getCategoriesWithFields(caseTypeId);
+        FormSectionSchemaFieldResponseDTO response =
+                formSchemaService.getFormSectionSchemaWithFields(caseTypeId);
 
         return ResponseEntity.ok(
                 ApiResponse.success("Categories and fields fetched successfully", response)
         );
+    }
+
+    //Get sub Cases by case Id
+
+    @GetMapping("/form-section-schema/{caseTypeId}")
+    @Operation(summary = "Fetch Sub Cases", description = "fetches subcases by case type id")
+    public ResponseEntity<ApiResponse<List<FormSectionSchemaDTO>>> fetchFormSectionSchemaByCaseTypeId(@PathVariable Long caseTypeId){
+
+       List<FormSectionSchemaDTO> formSectionSchema = formSchemaService.getFormSectionSchemaByCaseTypeId(caseTypeId);
+
+        return ResponseEntity.ok(ApiResponse.success("Form Section Schema Fetched Successfully",formSectionSchema));
+    }
+
+    @PostMapping("/form-section-schema")
+    public ResponseEntity<ApiResponse<FormSectionSchemaDTO>> saveFormSectionSchema(@RequestBody FormSectionSchemaDTO formSectionSchema){
+
+        FormSectionSchemaDTO formSectionData = formSchemaService.saveFormSectionData(formSectionSchema);
+
+        return ResponseEntity.ok(ApiResponse.success("Form section data saved succesfully", formSectionData));
+    }
+
+    @DeleteMapping("/delete/form-section-schema/{formSectionSchemaId}")
+//    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> deleteFormSectionSchemaData(@PathVariable Long formSectionSchemaId) {
+        log.info("Deleting form section Schema: {}", formSectionSchemaId);
+
+
+        formSchemaService.deleteFormSectionSchemaData(formSectionSchemaId);
+        Map<String, Object> response = Map.of(
+                "message", "Form section schema deleted successfully",
+                "id", formSectionSchemaId
+        );
+
+        return ResponseEntity.ok(ApiResponse.success("Form section schema deleted successfully", response));
+    }
+    @PutMapping("/update/{formSectionSchemaId}")
+    public ResponseEntity<ApiResponse<FormSectionSchemaDTO>> updateFormSectionSchema(
+            @PathVariable Long formSectionSchemaId,
+            @Valid @RequestBody FormSectionSchemaDTO request) {
+        log.info("Update from section schema request for ID: {}", formSectionSchemaId);
+
+        FormSectionSchemaDTO updated = formSchemaService.updateFormSectionSchema(formSectionSchemaId, request);
+
+        return ResponseEntity.ok(ApiResponse.success("Form section schema updated successfully", updated));
     }
 
 
