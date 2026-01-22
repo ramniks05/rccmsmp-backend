@@ -38,8 +38,7 @@ public class FormSchemaService {
     private final FormFieldDefinitionRepository fieldRepository;
     private final CaseTypeRepository caseTypeRepository;
     private final ObjectMapper objectMapper;
-    @Autowired
-    private FormSectionSchemaRepository formSectionSchemaRepository;
+    private final FormSectionSchemaRepository formSectionSchemaRepository;
 
     /**
      * Get form schema for a case type (only active fields)

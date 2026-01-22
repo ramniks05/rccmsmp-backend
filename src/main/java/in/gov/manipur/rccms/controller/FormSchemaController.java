@@ -187,10 +187,10 @@ public class FormSchemaController {
         );
     }
 
-    //Get sub Cases by case Id
+    //Get Form Section Schema by case type ID
 
     @GetMapping("/form-section-schema/{caseTypeId}")
-    @Operation(summary = "Fetch Sub Cases", description = "fetches subcases by case type id")
+    @Operation(summary = "Fetch form section schema", description = "fetches form section schema by case type id")
     public ResponseEntity<ApiResponse<List<FormSectionSchemaDTO>>> fetchFormSectionSchemaByCaseTypeId(@PathVariable Long caseTypeId){
 
        List<FormSectionSchemaDTO> formSectionSchema = formSchemaService.getFormSectionSchemaByCaseTypeId(caseTypeId);
@@ -199,6 +199,7 @@ public class FormSchemaController {
     }
 
     @PostMapping("/form-section-schema")
+    @Operation(summary = "Add form section schema", description = "Add form section schema")
     public ResponseEntity<ApiResponse<FormSectionSchemaDTO>> saveFormSectionSchema(@RequestBody FormSectionSchemaDTO formSectionSchema){
 
         FormSectionSchemaDTO formSectionData = formSchemaService.saveFormSectionData(formSectionSchema);
@@ -207,6 +208,7 @@ public class FormSchemaController {
     }
 
     @DeleteMapping("/delete/form-section-schema/{formSectionSchemaId}")
+    @Operation(summary = "Delete form section schema", description = "Delete form section schema")
     @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<ApiResponse<Map<String, Object>>> deleteFormSectionSchemaData(@PathVariable Long formSectionSchemaId) {
         log.info("Deleting form section Schema: {}", formSectionSchemaId);
