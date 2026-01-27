@@ -46,6 +46,8 @@ public interface FormFieldDefinitionRepository extends JpaRepository<FormFieldDe
 
     void deleteByFormSectionSchemaId(Long formSectionSchemaId);
 
+    boolean existsByFormSectionSchemaId(Long formSectionSchemaId);
+
 //    List<FormFieldDefinition> findByCategoryIdAndIsActiveTrueOrderByDisplayOrderAsc(Long categoryId);
 }
 

@@ -226,7 +226,7 @@ public class FormSchemaController {
     public ResponseEntity<ApiResponse<FormSectionSchemaDTO>> updateFormSectionSchema(
             @PathVariable Long formSectionSchemaId,
             @Valid @RequestBody FormSectionSchemaDTO request) {
-        log.info("Update from section schema request for ID: {}", formSectionSchemaId);
+        log.info("Update form section schema request for ID: {}", formSectionSchemaId);
 
         FormSectionSchemaDTO updated = formSchemaService.updateFormSectionSchema(formSectionSchemaId, request);
 

@@ -738,17 +738,17 @@ public class FormSchemaService {
             throw new IllegalArgumentException("Form section schema ID cannot be null");
         }
 
-        fieldRepository
-                .deleteByFormSectionSchemaId(formSectionSchemaId);
+        if (!formSectionSchemaRepository.existsById(formSectionSchemaId)) {
+            throw new RuntimeException("Form section schema not found with ID: " + formSectionSchemaId);
+        } else {
+            if (fieldRepository.existsByFormSectionSchemaId(formSectionSchemaId)) {
+                fieldRepository.deleteByFormSectionSchemaId(formSectionSchemaId);
+            }
+            formSectionSchemaRepository.deleteById(formSectionSchemaId);
+            log.info("Form section schema deleted successfully: formSectionSchemaId={}", formSectionSchemaId);
+        }
 
-        FormSectionSchema formSectionSchema =
-                formSectionSchemaRepository.findById(formSectionSchemaId)
-                        .orElseThrow(() ->
-                                new RuntimeException("Form section schema not found: " + formSectionSchemaId)
-                        );
 
-        formSectionSchemaRepository.deleteById(formSectionSchemaId);
-        log.info("Form section schema deleted successfully: formSectionSchemaId={}", formSectionSchemaId);
     }
 
     public FormSectionSchemaDTO updateFormSectionSchema(Long formSectionSchemaId, FormSectionSchemaDTO dto) {
@@ -776,22 +776,20 @@ public class FormSchemaService {
         // Check if name is being changed and if new name already exists
         if (!formSectionSchema.getFormSectionSchemaName().equals(dto.getFormSectionSchemaName().trim())) {
             if (formSectionSchemaRepository.existsByFormSectionSchemaName(dto.getFormSectionSchemaName().trim())) {
-                log.warn("Form Section Schema update failed: Name {} already exists", dto.getFormSectionSchemaName());
-                throw new DuplicateUserException("Form Section Schema name already exists");
+                log.warn("Form section schema update failed: Name {} already exists", dto.getFormSectionSchemaName());
+                throw new DuplicateUserException("Form section schema name already exists");
             }
             formSectionSchema.setFormSectionSchemaName(dto.getFormSectionSchemaName().trim());
         }
-
-        // Update other fields
         formSectionSchema.setDisplayOrder(dto.getDisplayOrder());
         if (dto.getIsActive() != null) {
             formSectionSchema.setIsActive(dto.getIsActive());
         }
 
-        FormSectionSchema updated = formSectionSchemaRepository.save(formSectionSchema);
-        log.info("Form Section Schema  updated successfully with ID: {}", updated.getId());
+        FormSectionSchema savedData = formSectionSchemaRepository.save(formSectionSchema);
+        log.info("Form section schema updated successfully with ID: {}", savedData.getId());
 
-        return new FormSectionSchemaDTO(updated);
+        return new FormSectionSchemaDTO(savedData);
     }
 
 }
