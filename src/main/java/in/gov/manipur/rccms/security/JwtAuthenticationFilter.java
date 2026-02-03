@@ -51,11 +51,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String token = extractTokenFromRequest(request);
             
             if (token != null) {
+                log.debug("JWT token found for path: {}", requestPath);
                 String username = extractUsernameFromToken(token);
                 
                 if (jwtService.validateToken(token, username)) {
                     // Extract auth type from token
                     String authType = jwtService.extractAllClaims(token).get("authType", String.class);
+                    log.debug("Token validated. AuthType: {}, Username: {}", authType, username);
                     
                     // For post-based authentication, validate posting is still active
                     if ("POST_BASED".equals(authType)) {
@@ -64,7 +66,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     
                     // Set authentication context
                     setAuthenticationContext(token, request);
+                    log.debug("Authentication context set successfully");
+                } else {
+                    log.warn("JWT token validation failed for path: {}", requestPath);
                 }
+            } else {
+                log.debug("No JWT token found in request for path: {}", requestPath);
             }
         } catch (InvalidCredentialsException e) {
             log.warn("JWT authentication failed - posting validation: {}", e.getMessage());
@@ -111,7 +118,28 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             if (path.startsWith("/api/admin/case-types")) {
                 return true;
             }
+            if (path.startsWith("/api/case-natures")) {
+                return true;
+            }
+            if (path.startsWith("/api/admin/case-natures")) {
+                return true;
+            }
+            if (path.startsWith("/api/public/case-types")) {
+                return true;
+            }
+            if (path.startsWith("/api/public/courts")) {
+                return true;
+            }
+            if (path.startsWith("/api/public/form-schemas/")) {
+                return true;
+            }
             if (path.startsWith("/api/admin/form-schemas/case-types/")) {
+                return true;
+            }
+            if (path.startsWith("/api/public/form-data-sources/")) {
+                return true;
+            }
+            if (path.equals("/api/admin/system-settings")) {
                 return true;
             }
         }
@@ -203,8 +231,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     authorities.add(new SimpleGrantedAuthority("ROLE_" + role));
                 }
             } else {
-                // Citizen authentication
-                authorities.add(new SimpleGrantedAuthority("ROLE_CITIZEN"));
+                // Citizen/Lawyer authentication
+                String userType = claims.get("userType", String.class);
+                if ("LAWYER".equalsIgnoreCase(userType)) {
+                    authorities.add(new SimpleGrantedAuthority("ROLE_LAWYER"));
+                } else if ("OPERATOR".equalsIgnoreCase(userType)) {
+                    authorities.add(new SimpleGrantedAuthority("ROLE_OPERATOR"));
+                } else {
+                    authorities.add(new SimpleGrantedAuthority("ROLE_CITIZEN"));
+                }
             }
             
             UsernamePasswordAuthenticationToken authentication = 

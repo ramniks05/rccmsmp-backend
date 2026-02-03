@@ -13,7 +13,6 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
@@ -65,33 +64,11 @@ public class Citizen {
     @Column(name = "mobile_number", nullable = false, unique = true, length = 10)
     private String mobileNumber;
 
-    @Column(name = "date_of_birth", nullable = false)
-    private LocalDate dateOfBirth;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "gender", nullable = false, length = 10)
-    private Gender gender;
-
-    @NotBlank(message = "Address is required")
-    @Size(min = 10, max = 500, message = "Address must be between 10 and 500 characters")
-    @Column(name = "address", nullable = false, length = 500)
-    private String address;
-
-    @NotBlank(message = "District is required")
-    @Size(max = 100, message = "District must not exceed 100 characters")
-    @Column(name = "district", nullable = false, length = 100)
-    private String district;
-
-    @NotBlank(message = "Pincode is required")
-    @Pattern(regexp = "^\\d{6}$", message = "Pincode must be exactly 6 digits")
-    @Column(name = "pincode", nullable = false, length = 6)
-    private String pincode;
-
-    @Column(name = "aadhar_number", nullable = false, unique = true, length = 500) // Length 500 for encrypted value
-    private String aadharNumber; // Will be encrypted at rest - validation done at DTO level
-
     @Column(name = "password", nullable = false, length = 255) // Length 255 for BCrypt hash
     private String password; // Will be hashed with BCrypt
+
+    @Column(name = "registration_data", columnDefinition = "TEXT")
+    private String registrationData; // JSON string for dynamic registration fields
 
     @Enumerated(EnumType.STRING)
     @Column(name = "citizen_type", nullable = false, length = 20)
@@ -115,17 +92,10 @@ public class Citizen {
     private LocalDateTime updatedAt;
 
     /**
-     * Gender Enum
-     */
-    public enum Gender {
-        MALE, FEMALE, OTHER
-    }
-
-    /**
      * Citizen Type Enum
      */
     public enum CitizenType {
-        CITIZEN, OPERATOR
+        CITIZEN, OPERATOR, LAWYER
     }
 
     @PrePersist

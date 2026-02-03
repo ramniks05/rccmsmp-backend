@@ -16,15 +16,17 @@ import java.util.Optional;
 public interface FormFieldDefinitionRepository extends JpaRepository<FormFieldDefinition, Long> {
 
     /**
-     * Find all active fields for a case type, ordered by display order
+     * Find all active fields for a case type, ordered by field group, then display order
+     * Note: Group ordering is handled by joining with FormFieldGroup in the service layer
      */
-    @Query("SELECT f FROM FormFieldDefinition f WHERE f.caseTypeId = :caseTypeId AND f.isActive = true ORDER BY f.displayOrder ASC, f.id ASC")
+    @Query("SELECT f FROM FormFieldDefinition f WHERE f.caseTypeId = :caseTypeId AND f.isActive = true ORDER BY f.fieldGroup ASC NULLS LAST, f.displayOrder ASC, f.id ASC")
     List<FormFieldDefinition> findActiveFieldsByCaseTypeId(@Param("caseTypeId") Long caseTypeId);
 
     /**
-     * Find all fields (active and inactive) for a case type, ordered by display order
+     * Find all fields (active and inactive) for a case type, ordered by field group, then display order
+     * Note: Group ordering is handled by joining with FormFieldGroup in the service layer
      */
-    @Query("SELECT f FROM FormFieldDefinition f WHERE f.caseTypeId = :caseTypeId ORDER BY f.displayOrder ASC, f.id ASC")
+    @Query("SELECT f FROM FormFieldDefinition f WHERE f.caseTypeId = :caseTypeId ORDER BY f.fieldGroup ASC NULLS LAST, f.displayOrder ASC, f.id ASC")
     List<FormFieldDefinition> findAllFieldsByCaseTypeId(@Param("caseTypeId") Long caseTypeId);
 
     /**
@@ -42,6 +44,7 @@ public interface FormFieldDefinitionRepository extends JpaRepository<FormFieldDe
      */
     long countByCaseTypeIdAndIsActiveTrue(Long caseTypeId);
 
+
     List<FormFieldDefinition> findByCaseTypeIdAndIsActiveTrueOrderByDisplayOrderAsc(Long caseTypeId);
 
     void deleteByFormSectionSchemaId(Long formSectionSchemaId);
@@ -49,5 +52,12 @@ public interface FormFieldDefinitionRepository extends JpaRepository<FormFieldDe
     boolean existsByFormSectionSchemaId(Long formSectionSchemaId);
 
 //    List<FormFieldDefinition> findByCategoryIdAndIsActiveTrueOrderByDisplayOrderAsc(Long categoryId);
+
+    /**
+     * Find fields by case type and group, ordered by display order
+     */
+    @Query("SELECT f FROM FormFieldDefinition f WHERE f.caseTypeId = :caseTypeId AND f.fieldGroup = :fieldGroup AND f.isActive = true ORDER BY f.displayOrder ASC")
+    List<FormFieldDefinition> findByCaseTypeIdAndFieldGroup(@Param("caseTypeId") Long caseTypeId, @Param("fieldGroup") String fieldGroup);
+
 }
 

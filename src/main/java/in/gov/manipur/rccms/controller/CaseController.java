@@ -5,8 +5,10 @@ import in.gov.manipur.rccms.dto.CaseDTO;
 import in.gov.manipur.rccms.dto.CreateCaseDTO;
 import in.gov.manipur.rccms.dto.ExecuteTransitionDTO;
 import in.gov.manipur.rccms.dto.FormSchemaDTO;
+import in.gov.manipur.rccms.dto.ResubmitCaseDTO;
+import in.gov.manipur.rccms.dto.TransitionChecklistDTO;
+import in.gov.manipur.rccms.dto.WorkflowHistoryDTO;
 import in.gov.manipur.rccms.dto.WorkflowTransitionDTO;
-import in.gov.manipur.rccms.entity.WorkflowHistory;
 import in.gov.manipur.rccms.service.CaseService;
 import in.gov.manipur.rccms.service.CurrentUserService;
 import in.gov.manipur.rccms.service.FormSchemaService;
@@ -88,6 +90,39 @@ public class CaseController {
     }
 
     /**
+     * Resubmit a case after correction (citizen updates case data)
+     * PUT /api/cases/{caseId}/resubmit
+     */
+    @Operation(summary = "Resubmit Case", description = "Resubmit a case after correction by updating case data")
+    @PutMapping("/{caseId}/resubmit")
+    public ResponseEntity<ApiResponse<CaseDTO>> resubmitCase(
+            @PathVariable Long caseId,
+            @Valid @RequestBody ResubmitCaseDTO dto,
+            HttpServletRequest request) {
+        log.info("Resubmit case request: caseId={}", caseId);
+
+        // Get applicant ID from token (for citizen) or from request header
+        Long applicantId = currentUserService.getCurrentOfficerId(request);
+        if (applicantId == null) {
+            String userIdHeader = request.getHeader("X-User-Id");
+            if (userIdHeader != null) {
+                try {
+                    applicantId = Long.parseLong(userIdHeader);
+                } catch (NumberFormatException e) {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                            .body(ApiResponse.error("Invalid user ID"));
+                }
+            } else {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(ApiResponse.error("User ID not found"));
+            }
+        }
+
+        CaseDTO updatedCase = caseService.resubmitCase(caseId, applicantId, dto);
+        return ResponseEntity.ok(ApiResponse.success("Case resubmitted successfully", updatedCase));
+    }
+
+    /**
      * Get case by ID
      * GET /api/cases/{id}
      */
@@ -143,10 +178,26 @@ public class CaseController {
     }
 
     /**
-     * Get cases assigned to officer
+     * Get cases assigned to current logged-in officer
+     * GET /api/cases/my-cases
+     */
+    @Operation(summary = "Get My Assigned Cases", description = "Retrieve all cases assigned to the current logged-in officer")
+    @GetMapping("/my-cases")
+    public ResponseEntity<ApiResponse<List<CaseDTO>>> getMyAssignedCases(HttpServletRequest request) {
+        Long officerId = currentUserService.getCurrentOfficerId(request);
+        if (officerId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ApiResponse.error("Officer information not found. Please login as an officer."));
+        }
+        List<CaseDTO> cases = caseService.getCasesAssignedToOfficer(officerId);
+        return ResponseEntity.ok(ApiResponse.success("Cases retrieved successfully", cases));
+    }
+
+    /**
+     * Get cases assigned to officer (by ID - for admin use)
      * GET /api/cases/assigned/{officerId}
      */
-    @Operation(summary = "Get Cases Assigned to Officer", description = "Retrieve all cases assigned to an officer")
+    @Operation(summary = "Get Cases Assigned to Officer", description = "Retrieve all cases assigned to an officer (by ID)")
     @GetMapping("/assigned/{officerId}")
     public ResponseEntity<ApiResponse<List<CaseDTO>>> getCasesAssignedToOfficer(@PathVariable Long officerId) {
         List<CaseDTO> cases = caseService.getCasesAssignedToOfficer(officerId);
@@ -210,13 +261,37 @@ public class CaseController {
     }
 
     /**
+     * Get transition checklist status
+     * GET /api/cases/{caseId}/transitions/{transitionCode}/checklist
+     */
+    @Operation(summary = "Get Transition Checklist", description = "Get checklist status showing which conditions are met and which are blocking a transition")
+    @GetMapping("/{caseId}/transitions/{transitionCode}/checklist")
+    public ResponseEntity<ApiResponse<TransitionChecklistDTO>> getTransitionChecklist(
+            @PathVariable Long caseId,
+            @PathVariable String transitionCode,
+            HttpServletRequest request) {
+        Long officerId = currentUserService.getCurrentOfficerId(request);
+        String roleCode = currentUserService.getCurrentRoleCode(request);
+        Long unitId = currentUserService.getCurrentUnitId(request);
+        
+        if (officerId == null || roleCode == null || unitId == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ApiResponse.error("User information not found"));
+        }
+        
+        TransitionChecklistDTO checklist = workflowEngineService
+                .getTransitionChecklist(caseId, transitionCode, officerId, roleCode, unitId);
+        return ResponseEntity.ok(ApiResponse.success("Checklist retrieved successfully", checklist));
+    }
+
+    /**
      * Get workflow history for a case
      * GET /api/cases/{caseId}/history
      */
     @Operation(summary = "Get Workflow History", description = "Get complete workflow history/audit trail for a case")
     @GetMapping("/{caseId}/history")
-    public ResponseEntity<ApiResponse<List<WorkflowHistory>>> getWorkflowHistory(@PathVariable Long caseId) {
-        List<WorkflowHistory> history = workflowEngineService.getWorkflowHistory(caseId);
+    public ResponseEntity<ApiResponse<List<WorkflowHistoryDTO>>> getWorkflowHistory(@PathVariable Long caseId) {
+        List<WorkflowHistoryDTO> history = workflowEngineService.getWorkflowHistoryDTOs(caseId);
         return ResponseEntity.ok(ApiResponse.success("Workflow history retrieved successfully", history));
     }
 }
