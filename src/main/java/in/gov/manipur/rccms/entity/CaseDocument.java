@@ -66,6 +66,12 @@ public class CaseDocument {
     @Column(name = "signed_at")
     private LocalDateTime signedAt;
 
+    @Column(name = "signature_id")
+    private Long signatureId;  // FK to digital_signatures (for future use)
+
+    @Column(name = "signed_document_id")
+    private Long signedDocumentId;  // FK to signed_documents (for future use)
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 

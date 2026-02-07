@@ -40,6 +40,11 @@ app:
   admin:
     username: ${ADMIN_USERNAME:admin} # Default admin username
     password: ${ADMIN_PASSWORD:admin@123} # Default admin password (change in production)
+  # Digital Signature (scaffold - implementation pending)
+  digital-signature:
+    enabled: false
+    fake-enabled: true  # Set true for testing - simulates signing without real DSC/OTP/Aadhaar
+    storage-path: ${DIGITAL_SIGNATURE_STORAGE_PATH:./data/signed-documents/}
 
 # Swagger/OpenAPI Configuration
 springdoc:
